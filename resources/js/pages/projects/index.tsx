@@ -85,21 +85,23 @@ export default function ProjectsPage({
     );
 
     useEffect(() => {
-    if (activeView !== (view ?? 'board')) {
-        setActiveView(view ?? 'board');
-    }
-    }, [view]);
+        if (activeView !== (view ?? 'board')) {
+            setActiveView(view ?? 'board');
+        }
+    }, [view, activeView]);
 
     useLayoutEffect(() => {
-        const nextFilters: FilterState = {
-            q: filters.q ?? '',
-            status: filters.status ?? '',
-            assignee_id: filters.assignee_id ? String(filters.assignee_id) : '',
-            priority: filters.priority ?? '',
-            due_date: filters.due_date ?? '',
-        };
+    const nextFilters: FilterState = {
+        q: filters.q ?? '',
+        status: filters.status ?? '',
+        assignee_id: filters.assignee_id ? String(filters.assignee_id) : '',
+        priority: filters.priority ?? '',
+        due_date: filters.due_date ?? '',
+    };
 
+    if (JSON.stringify(activeFilters) !== JSON.stringify(nextFilters)) {
         setActiveFilters(nextFilters);
+    }
     }, [filters.q, filters.status, filters.assignee_id, filters.priority, filters.due_date]);
 
     const createProjectForm = useForm({
