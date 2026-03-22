@@ -54,7 +54,7 @@ export default function FlashToaster({ initialFlash }: FlashToasterProps) {
         return () => {
             removeListener();
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, []);
 
     return null;

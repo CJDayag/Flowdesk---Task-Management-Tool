@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { FormEvent, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -43,16 +43,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function ProjectsPage({
-    projects,
-    columns,
-    tasks,
-    selectedProjectId,
-    workspaceMembers,
-    view,
-    filters,
-    searchResults,
-}: {
+type ProjectsPageProps = {
     projects: Project[];
     columns: ProjectColumn[];
     tasks: Task[];
@@ -67,7 +58,60 @@ export default function ProjectsPage({
         due_date?: string;
     };
     searchResults: SearchResults;
-}) {
+};
+
+const buildPageKey = (view: ViewMode, selectedProjectId: number | undefined, filters: ProjectsPageProps['filters']) => {
+    const filtersKey = [
+        filters.q ?? '',
+        filters.status ?? '',
+        filters.assignee_id ?? '',
+        filters.priority ?? '',
+        filters.due_date ?? '',
+    ].join('|');
+
+    return `${selectedProjectId ?? 'none'}|${view ?? 'board'}|${filtersKey}`;
+};
+
+export default function ProjectsPage({
+    projects,
+    columns,
+    tasks,
+    selectedProjectId,
+    workspaceMembers,
+    view,
+    filters,
+    searchResults,
+}: ProjectsPageProps) {
+    const pageKey = buildPageKey(view ?? 'board', selectedProjectId, filters);
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Projects" />
+            <ProjectsPageContent
+                key={pageKey}
+                projects={projects}
+                columns={columns}
+                tasks={tasks}
+                selectedProjectId={selectedProjectId}
+                workspaceMembers={workspaceMembers}
+                view={view}
+                filters={filters}
+                searchResults={searchResults}
+            />
+        </AppLayout>
+    );
+}
+
+function ProjectsPageContent({
+    projects,
+    columns,
+    tasks,
+    selectedProjectId,
+    workspaceMembers,
+    view,
+    filters,
+    searchResults,
+}: ProjectsPageProps) {
     const [activeView, setActiveView] = useState<ViewMode>(view ?? 'board');
     const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null);
     const [draggedColumnId, setDraggedColumnId] = useState<number | null>(null);
@@ -83,26 +127,6 @@ export default function ProjectsPage({
         () => projects.find((project) => project.id === selectedProjectId) ?? projects[0],
         [projects, selectedProjectId],
     );
-
-    useEffect(() => {
-        if (activeView !== (view ?? 'board')) {
-            setActiveView(view ?? 'board');
-        }
-    }, [view, activeView]);
-
-    useLayoutEffect(() => {
-    const nextFilters: FilterState = {
-        q: filters.q ?? '',
-        status: filters.status ?? '',
-        assignee_id: filters.assignee_id ? String(filters.assignee_id) : '',
-        priority: filters.priority ?? '',
-        due_date: filters.due_date ?? '',
-    };
-
-    if (JSON.stringify(activeFilters) !== JSON.stringify(nextFilters)) {
-        setActiveFilters(nextFilters);
-    }
-    }, [filters.q, filters.status, filters.assignee_id, filters.priority, filters.due_date]);
 
     const createProjectForm = useForm({
         name: '',
@@ -379,10 +403,7 @@ export default function ProjectsPage({
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Projects" />
-
-            <div className="space-y-6 p-4">
+        <div className="space-y-6 p-4">
                 <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
                     <aside className="space-y-4 rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
                         <Heading
@@ -864,6 +885,5 @@ export default function ProjectsPage({
                     </section>
                 </div>
             </div>
-        </AppLayout>
     );
 }
