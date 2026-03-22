@@ -92,13 +92,10 @@ export default function ProjectsPage({
         [projects, selectedProjectId],
     );
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const nextView = view ?? 'board';
-
-        if (nextView !== activeView) {
-            setActiveView(nextView);
-        }
-    }, [activeView, view]);
+        setActiveView(nextView);
+    }, [view]);
 
     useLayoutEffect(() => {
         const nextFilters: FilterState = {
@@ -109,7 +106,7 @@ export default function ProjectsPage({
             due_date: filters.due_date ?? '',
         };
 
-        setActiveFilters((current) => (areFiltersEqual(current, nextFilters) ? current : nextFilters));
+        setActiveFilters(nextFilters);
     }, [filters.q, filters.status, filters.assignee_id, filters.priority, filters.due_date]);
 
     const createProjectForm = useForm({
