@@ -36,14 +36,6 @@ type SearchResults = {
     users: ProjectMember[];
 };
 
-const areFiltersEqual = (left: FilterState, right: FilterState) => (
-    left.q === right.q
-    && left.status === right.status
-    && left.assignee_id === right.assignee_id
-    && left.priority === right.priority
-    && left.due_date === right.due_date
-);
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Projects',
@@ -93,8 +85,9 @@ export default function ProjectsPage({
     );
 
     useEffect(() => {
-        const nextView = view ?? 'board';
-        setActiveView(nextView);
+    if (activeView !== (view ?? 'board')) {
+        setActiveView(view ?? 'board');
+    }
     }, [view]);
 
     useLayoutEffect(() => {
