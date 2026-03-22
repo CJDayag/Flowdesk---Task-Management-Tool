@@ -1,5 +1,5 @@
 import { Head, router, useForm } from '@inertiajs/react';
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,14 @@ type SearchResults = {
     users: ProjectMember[];
 };
 
+const areFiltersEqual = (left: FilterState, right: FilterState) => (
+    left.q === right.q
+    && left.status === right.status
+    && left.assignee_id === right.assignee_id
+    && left.priority === right.priority
+    && left.due_date === right.due_date
+);
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Projects',
@@ -70,7 +78,6 @@ export default function ProjectsPage({
 }) {
     const [activeView, setActiveView] = useState<ViewMode>(view ?? 'board');
     const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null);
-    const [draggedTaskColumnId, setDraggedTaskColumnId] = useState<number | null>(null);
     const [draggedColumnId, setDraggedColumnId] = useState<number | null>(null);
     const [activeFilters, setActiveFilters] = useState<FilterState>({
         q: filters.q ?? '',
@@ -85,18 +92,24 @@ export default function ProjectsPage({
         [projects, selectedProjectId],
     );
 
-    useEffect(() => {
-        setActiveView(view ?? 'board');
-    }, [view]);
+    useLayoutEffect(() => {
+        const nextView = view ?? 'board';
 
-    useEffect(() => {
-        setActiveFilters({
+        if (nextView !== activeView) {
+            setActiveView(nextView);
+        }
+    }, [activeView, view]);
+
+    useLayoutEffect(() => {
+        const nextFilters: FilterState = {
             q: filters.q ?? '',
             status: filters.status ?? '',
             assignee_id: filters.assignee_id ? String(filters.assignee_id) : '',
             priority: filters.priority ?? '',
             due_date: filters.due_date ?? '',
-        });
+        };
+
+        setActiveFilters((current) => (areFiltersEqual(current, nextFilters) ? current : nextFilters));
     }, [filters.q, filters.status, filters.assignee_id, filters.priority, filters.due_date]);
 
     const createProjectForm = useForm({
@@ -129,7 +142,7 @@ export default function ProjectsPage({
             'member_ids',
             selectedProject?.members?.map((member) => member.id) ?? [],
         );
-    }, [selectedProject?.id]);
+    }, [projectMembersForm, selectedProject?.members]);
 
     const orderedColumns = useMemo(
         () => [...columns].sort((a, b) => a.sort_order - b.sort_order),
@@ -350,7 +363,6 @@ export default function ProjectsPage({
         });
 
         setDraggedTaskId(null);
-        setDraggedTaskColumnId(null);
     };
 
     const handleTaskDrop = (targetColumnId: number, targetTaskId?: number) => {
@@ -730,7 +742,6 @@ export default function ProjectsPage({
                                                             draggable
                                                             onDragStart={() => {
                                                                 setDraggedTaskId(task.id);
-                                                                setDraggedTaskColumnId(column.id);
                                                             }}
                                                             onDragOver={(event) => event.preventDefault()}
                                                             onDrop={(event) => {

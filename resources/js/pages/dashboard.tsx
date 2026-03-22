@@ -144,6 +144,32 @@ type DashboardAnalytics = {
     activityTimeline: Array<{ date: string; label: string; events: number }>;
 };
 
+const StatCard = ({ label, value }: { label: string; value: number }) => (
+    <div className="rounded-xl border border-sidebar-border/70 bg-card p-4 dark:border-sidebar-border">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+        <p className="mt-2 text-2xl font-semibold">{value}</p>
+    </div>
+);
+
+const TaskList = ({ title, tasks }: { title: string; tasks: DashboardTask[] }) => (
+    <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
+        <Heading variant="small" title={title} />
+        <div className="mt-3 space-y-2">
+            {tasks.length > 0 ? tasks.map((task) => (
+                <article key={task.id} className="rounded-md border border-border/60 p-3">
+                    <p className="text-sm font-medium">{task.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {task.project?.name ?? 'No project'}
+                        {task.due_at ? ` • due ${new Date(task.due_at).toLocaleDateString()}` : ''}
+                    </p>
+                </article>
+            )) : (
+                <p className="text-sm text-muted-foreground">No tasks in this section.</p>
+            )}
+        </div>
+    </div>
+);
+
 export default function Dashboard({
     workspace,
     stats,
@@ -177,32 +203,6 @@ export default function Dashboard({
         in_progress: '#3b82f6',
         done: '#22c55e',
     };
-
-    const StatCard = ({ label, value }: { label: string; value: number }) => (
-        <div className="rounded-xl border border-sidebar-border/70 bg-card p-4 dark:border-sidebar-border">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-            <p className="mt-2 text-2xl font-semibold">{value}</p>
-        </div>
-    );
-
-    const TaskList = ({ title, tasks }: { title: string; tasks: DashboardTask[] }) => (
-        <div className="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border">
-            <Heading variant="small" title={title} />
-            <div className="mt-3 space-y-2">
-                {tasks.length > 0 ? tasks.map((task) => (
-                    <article key={task.id} className="rounded-md border border-border/60 p-3">
-                        <p className="text-sm font-medium">{task.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                            {task.project?.name ?? 'No project'}
-                            {task.due_at ? ` • due ${new Date(task.due_at).toLocaleDateString()}` : ''}
-                        </p>
-                    </article>
-                )) : (
-                    <p className="text-sm text-muted-foreground">No tasks in this section.</p>
-                )}
-            </div>
-        </div>
-    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
